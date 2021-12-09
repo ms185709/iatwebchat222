@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <title>IAT Virtial Assistant</title> 
+        <!-- This styling is for the canvas demonstration purposes. It is recommended 
+    that style is moved to separate file for organization in larger projects -->
+        <style>
+            html, body {
+                height: 100%;
+            }
+            body {
+                margin: 0;
+            }
+            h1 {
+                font-size: 16px;
+                font-family: Segoe UI;
+                /* line-height: 20px; */
+                color: whitesmoke;
+                display: flex;
+                align-items: center;
+                margin: 0px 0px 0px 10px
+            }
+            .heading {
+                background-color: #00514C;
+                height: 50px;
+                align-items: center;
+                display: flex;
+            }
+
+            .main {
+                margin: 18px;
+                border-radius: 4px;
+            }
+
+            div[role="form"]{
+                background-color: transparent;
+            }        
+            #webchat {
+                position: fixed;
+                height: calc(100% - 50px);
+                width: 100%;
+                top: 50px;
+                overflow: hidden;
+            }
+          </style>
+    </head>
+    <body>
+        <div>
+            <div class="heading">
+
+                <!-- Change the h1 text to change the bot name -->   
+                <h1><img src="bot-logo.svg" style="width:36px;"> <span class="title" style="margin-left: 10px;">IAT Virtual Assistant</span></h1>
+
+            </div>
+            <div id="webchat" role="main"></div>
+        </div>    
+      <script src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>
+      <script>
+            const styleOptions = {
+                // Add styleOptions to customize web chat canvas
+                hideUploadButton: true,botAvatarInitials: 'BT',
+                accent: '#00809d',
+                botAvatarBackgroundColor: "#FFFFFF",
+                userAvatarInitials: 'U',
+                botAvatarImage: 'https://bot-framework.azureedge.net/bot-icons-v1/4046fcb2-84db-4b5f-8a53-c14166b15071_BG19enF0n5P53pnF8BGL7qCF7FFXd67CF1oFwI5wBAq04mC.png',
+                userAvatarImage: 'https://content.powerapps.com/resource/makerx/static/media/user.417aa99d.svg'
+            };
+
+            var theURL = "https://prod-100.westus.logic.azure.com:443/workflows/7c2f28a0157c4013a8edef743203f1dc/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=p5iJtVSYktdglEfqpem9dqqYldc_NDeRI6qrJMtTDao";
+
+            const store = window.WebChat.createStore(
+               {},
+               ({ dispatch }) => next => action => {
+                   if (action.type === "DIRECT_LINE/CONNECT_FULFILLED") {
+                      dispatch({
+                          meta: {
+                               method: "keyboard",
+                           },
+                           payload: {
+                               activity: {
+                                     channelData: {
+                                          postBack: true,
+                                     },
+                                      //Web Chat will show the 'Greeting' System Topic message which has a trigger-phrase 'hello'
+                                      name: 'startConversation',
+                                      type: "event"
+                                 },
+                            },
+                            type: "DIRECT_LINE/POST_ACTIVITY",
+                       });
+                 }
+                 return next(action);
+              }
+           );
+           fetch(theURL)
+                .then(response => response.json())
+                .then(conversationInfo => {
+                    window.WebChat.renderWebChat(
+                        {
+                            directLine: window.WebChat.createDirectLine({
+                                token: conversationInfo.token,
+                            }),
+                            store: store,
+                            styleOptions: styleOptions
+                        },
+                        document.getElementById('webchat')
+                    );
+                })
+                .catch(err => console.error("An error occurred: " + err));
+        </script>
+      </body>
+    </html>
